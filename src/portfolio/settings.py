@@ -142,6 +142,7 @@ CAS_REDIRECT_URL = env.str('CAS_REDIRECT_URL', default=FORCE_SCRIPT_NAME or '/')
 CAS_CHECK_NEXT = env.bool('CAS_CHECK_NEXT', default=True)
 CAS_VERIFY_CERTIFICATE = env.bool('CAS_VERIFY_CERTIFICATE', default=True)
 CAS_RENAME_ATTRIBUTES = env.dict('CAS_RENAME_ATTRIBUTES', default={})
+CAS_API_KEY = env.str('CAS_API_KEY', default="")
 
 # Email settings
 SERVER_EMAIL = 'error@%s' % urlparse(SITE_URL).hostname
@@ -510,6 +511,15 @@ SOURCES = {
         apiconfig.TIMEOUT: 10,
         apiconfig.HEADER: {'Authorization': f'Bearer {ANGEWANDTE_API_KEY}'},
     },
+    'CAS_USER': {
+        apiconfig.URL: f'{CAS_SERVER_URL}api/v1/autocomplete/',
+        apiconfig.QUERY_FIELD: 'q',
+        apiconfig.PAYLOAD: {
+            'type':'user'
+        },
+        apiconfig.TIMEOUT: 10,
+        apiconfig.HEADER: {'Authorization': f'Bearer {CAS_API_KEY}'},
+    },
     'GND_PERSON': {
         apiconfig.URL: 'https://lobid.org/gnd/search',
         apiconfig.QUERY_FIELD: 'q',
@@ -658,6 +668,11 @@ ANGEWANDTE_MAPPING = {
     'source': 'uuid',
     'label': 'label',
 }
+BASE_MAPPING = {
+    'id': 'uuid',
+    'source_name': 'username',
+    'labels': 'label',
+}
 GND_MAPPING = {
     'source': 'id',  # common_schema: GND schema
     'label': 'label',
@@ -716,6 +731,10 @@ RESPONSE_MAPS = {
     'ANGEWANDTE_PERSON': {
         apiconfig.DIRECT: ANGEWANDTE_MAPPING,
         apiconfig.RULES: {'source_name': {apiconfig.RULE: '"Angewandte"'}},
+    },
+    'CAS_USER':{
+        apiconfig.DIRECT: BASE_MAPPING,
+        apiconfig.RULES: {'source_name': {apiconfig.RULE: '"CAS"'}},
     },
     'GND_PERSON': {
         apiconfig.DIRECT: GND_MAPPING,
@@ -824,7 +843,7 @@ RESPONSE_MAPS = {
 }
 
 BIBRECS = ('PRIMO_IMPORT',)
-CONTRIBUTORS = ('GND_PERSON', 'GND_INSTITUTION', 'VIAF_PERSON', 'VIAF_INSTITUTION')
+CONTRIBUTORS = ('CAS_USER','GND_PERSON', 'GND_INSTITUTION', 'VIAF_PERSON', 'VIAF_INSTITUTION')
 
 if 'uni-ak.ac.at' in SITE_URL:
     CONTRIBUTORS = tuple(x for x in ['ANGEWANDTE_PERSON', *CONTRIBUTORS])
